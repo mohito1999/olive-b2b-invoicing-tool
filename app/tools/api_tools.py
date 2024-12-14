@@ -1,4 +1,4 @@
-from langgraph.tools import APITool
+from langgraph import APITool
 
 create_customer_tool = APITool(
     name="create_customer_tool",

@@ -1,12 +1,24 @@
-from langgraph.agents import Supervisor
-from app.agents.customer_agent import CustomerAgent
-from app.agents.invoice_agent import InvoiceAgent
+from typing import Literal
+from langchain_openai import ChatOpenAI
+from langgraph.graph import StateGraph, MessagesState, START, END
+from app.agents.customer_agent import customer_agent
+import os
+from dotenv import load_dotenv
 
-class MainSupervisor(Supervisor):
-    def __init__(self):
-        super().__init__(name="MainSupervisor")
-        self.register_agent(CustomerAgent())
-        self.register_agent(InvoiceAgent())
+load_dotenv()  
 
-    async def route_request(self, query: str):
-        return await self.handle_query(query)
+# Initialize LLM with the correct environment variable
+model = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Supervisor Logic
+def supervisor(state: MessagesState) -> MessagesState:
+    # Access the content attribute directly
+    query = state["messages"][-1].content
+
+    # Example response (replace with LLM logic)
+    if "customer" in query.lower():
+        state["next_node"] = "customer_agent"
+    else:
+        state["next_node"] = END
+
+    return state
