@@ -1,3 +1,7 @@
+import sys
+print(sys.path)
+
+
 from fastapi import FastAPI
 from app.config import engine, Base
 from app.models import (

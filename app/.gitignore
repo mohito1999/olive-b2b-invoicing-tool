@@ -1,0 +1,49 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Environment variables
+.env
+
+# Database files
+*.sqlite3
+
+# Logs and temporary files
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Alembic migrations
+alembic/versions/*.pyc
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE Config Files
+.idea/
+.vscode/
+*.swp
+
+# Testing and coverage reports
+.coverage
+htmlcov/
+.coverage.*
+.tox/
+.pytest_cache/
+
+# Ignore Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Ignore build and dist folders
+build/
+dist/
+*.egg-info/
