@@ -5,7 +5,6 @@ from app.models.user import User
 
 router = APIRouter()
 
-# Dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -13,14 +12,15 @@ def get_db():
     finally:
         db.close()
 
-# Create a new user
+# Create a user
 @router.post("/users/")
-def create_user(username: str, email: str, password: str, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    new_user = User(username=username, email=email, password=password)
+def create_user(username: str, email: str, password: str, organization_id: int, db: Session = Depends(get_db)):
+    new_user = User(
+        username=username,
+        email=email,
+        password=password,
+        organization_id=organization_id
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

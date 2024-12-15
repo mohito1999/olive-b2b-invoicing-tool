@@ -14,17 +14,14 @@ def get_db():
 
 # Create a customer
 @router.post("/customers/")
-def create_customer(name: str, company_name: str, email: str, phone_number: str = None, address: str = None, db: Session = Depends(get_db)):
-    existing_customer = db.query(Customer).filter(Customer.email == email).first()
-    if existing_customer:
-        raise HTTPException(status_code=400, detail="Customer already exists")
-    
+def create_customer(name: str, company_name: str, email: str, organization_id: int, phone_number: str = None, address: str = None, db: Session = Depends(get_db)):
     new_customer = Customer(
-        name=name,  # POC name
+        name=name,
         company_name=company_name,
         email=email,
         phone_number=phone_number,
-        address=address
+        address=address,
+        organization_id=organization_id
     )
     db.add(new_customer)
     db.commit()

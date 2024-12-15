@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.config import SessionLocal
 from app.models.transaction import Transaction
 from app.models.invoice import Invoice
+from app.models.user import User
 
 router = APIRouter()
 
@@ -14,35 +15,38 @@ def get_db():
     finally:
         db.close()
 
-# Record a transaction
+# Create a transaction
 @router.post("/transactions/")
-def create_transaction(invoice_id: int, amount_paid: float, db: Session = Depends(get_db)):
-    invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
+def create_transaction(invoice_id: int, amount_paid: float, organization_id: int, db: Session = Depends(get_db)):
+    # Fetch the invoice
+    invoice = db.query(Invoice).filter(Invoice.id == invoice_id, Invoice.organization_id == organization_id).first()
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
-
-    if amount_paid + invoice.paid_amount > invoice.amount_due:
-        raise HTTPException(status_code=400, detail="Payment exceeds invoice amount")
 
     # Create a new transaction
     new_transaction = Transaction(
         invoice_id=invoice_id,
-        amount_paid=amount_paid
+        amount_paid=amount_paid,
+        organization_id=organization_id
     )
     db.add(new_transaction)
 
     # Update the invoice's paid amount and status
     invoice.paid_amount += amount_paid
-    if invoice.paid_amount == 0:
-        invoice.status = "Pending"
-    elif invoice.paid_amount < invoice.amount_due:
-        invoice.status = "Underpaid"
-    elif invoice.paid_amount == invoice.amount_due:
+    if invoice.paid_amount >= invoice.amount_due:
         invoice.status = "Paid"
+    else:
+        invoice.status = "Partially Paid"
 
+    # Commit the changes
     db.commit()
-    db.refresh(invoice)
+    db.refresh(new_transaction)
     return new_transaction
+
+# List all transactions
+@router.get("/transactions/")
+def list_transactions(db: Session = Depends(get_db)):
+    return db.query(Transaction).all()
 
 @router.delete("/transactions/{transaction_id}")
 def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
@@ -52,9 +56,3 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     db.delete(transaction)
     db.commit()
     return {"detail": "Transaction deleted successfully"}
-
-# List all transactions
-@router.get("/transactions/")
-def list_transactions(db: Session = Depends(get_db)):
-    transactions = db.query(Transaction).all()
-    return transactions

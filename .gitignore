@@ -1,0 +1,33 @@
+# Environment files
+.env
+*.env
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+
+# IDE and editor settings
+.vscode/
+.idea/
+
+# Logs and temporary files
+*.log
+*.sqlite3
+
+# Secrets and credentials
+*.key
+*.pem
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

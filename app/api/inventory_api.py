@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app.config import SessionLocal
 from app.models.inventory import Inventory
+from app.models.user import User
 
 router = APIRouter()
 
@@ -14,12 +15,13 @@ def get_db():
     finally:
         db.close()
 
-# Create an inventory item
+# Create an item
 @router.post("/inventory/")
 def create_item(
     name: str,
     description: str,
     price_per_unit: float,
+    organization_id: int,
     stock_quantity: Optional[int] = Query(0),
     db: Session = Depends(get_db)
 ):
@@ -28,6 +30,7 @@ def create_item(
         description=description,
         price_per_unit=price_per_unit,
         stock_quantity=stock_quantity,
+        organization_id=organization_id
     )
     db.add(new_item)
     db.commit()
@@ -39,7 +42,7 @@ def create_item(
 def list_items(db: Session = Depends(get_db)):
     return db.query(Inventory).all()
 
-# Get an item by ID
+# Get item by ID
 @router.get("/inventory/{item_id}")
 def get_item(item_id: int, db: Session = Depends(get_db)):
     item = db.query(Inventory).filter(Inventory.id == item_id).first()

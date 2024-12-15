@@ -20,6 +20,7 @@ def create_item(
     name: str,
     description: str,
     price_per_unit: float,
+    organization_id: int,
     stock_quantity: Optional[int] = Query(0),
     db: Session = Depends(get_db)
 ):
@@ -27,7 +28,8 @@ def create_item(
         name=name,
         description=description,
         price_per_unit=price_per_unit,
-        stock_quantity=stock_quantity
+        stock_quantity=stock_quantity,
+        organization_id=organization_id
     )
     db.add(new_item)
     db.commit()

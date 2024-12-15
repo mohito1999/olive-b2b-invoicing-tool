@@ -10,7 +10,8 @@ class InvoiceItem(Base):
     item_id = Column(Integer, ForeignKey("inventory.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Float, nullable=False)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
 
-    # Relationships
     invoice = relationship("Invoice", back_populates="invoice_items")
     item = relationship("Inventory")
+    organization = relationship("Organization", back_populates="invoice_items")

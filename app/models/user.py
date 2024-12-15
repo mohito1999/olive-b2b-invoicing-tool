@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime
-from datetime import datetime
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from app.config import Base
 
 class User(Base):
@@ -9,4 +9,6 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+
+    organization = relationship("Organization", back_populates="users")
