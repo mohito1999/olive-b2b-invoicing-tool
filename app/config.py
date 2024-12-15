@@ -22,3 +22,17 @@ openai.api_type = "azure"
 openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT")  # Azure endpoint
 openai.api_version = os.getenv("AZURE_OPENAI_API_VERSION")  # API version
 openai.api_key = os.getenv("OPENAI_API_KEY")  # API key
+
+
+# Dependency for Database Session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        db.rollback()
+        print(f"[Database] Session rollback due to: {str(e)}")
+        raise e
+    finally:
+        db.close()
+        print("[Database] Session closed.")

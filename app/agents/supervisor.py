@@ -1,24 +1,46 @@
-from typing import Literal
-from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, MessagesState, START, END
-from app.agents.customer_agent import customer_agent
-import os
-from dotenv import load_dotenv
+from langgraph.graph import MessagesState
+from app.llm_setup import get_llm_response
 
-load_dotenv()  
+# Define Available Agents
+AGENT_MAPPING = {
+    "invoice": "invoice_agent",
+    "customer": "customer_agent",
+    "end": "END"
+}
 
-# Initialize LLM with the correct environment variable
-model = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Supervisor Logic
+# LLM-Powered Supervisor Logic
 def supervisor(state: MessagesState) -> MessagesState:
-    # Access the content attribute directly
-    query = state["messages"][-1].content
+    query = state["messages"][-1].content.lower()
+    print(f"[Supervisor] Received Query: {query}")
 
-    # Example response (replace with LLM logic)
-    if "customer" in query.lower():
-        state["next_node"] = "customer_agent"
-    else:
-        state["next_node"] = END
+    # LLM Prompt for Routing
+    prompt = f"""
+    You are an AI-based supervisor managing a business process automation system. 
+    Based on the following query, decide which agent should handle it:
+
+    Available agents:
+    - Invoice Agent (handles invoice creation)
+    - Customer Agent (handles customer management)
+    
+    Query: "{query}"
+
+    Respond with only the next agent's name like `invoice_agent`, `customer_agent`, or `END` if no further action is required.
+    """
+
+    try:
+        # Use Azure OpenAI to decide the next agent
+        response = get_llm_response(prompt)
+        next_agent = response.strip().lower()
+        print(f"[Supervisor] Routed to: {next_agent}")
+
+        if next_agent in AGENT_MAPPING.values():
+            state["next_node"] = next_agent
+        else:
+            print("[Supervisor] Invalid route. Ending session.")
+            state["next_node"] = "END"
+
+    except Exception as e:
+        print(f"[Supervisor] Error during routing: {str(e)}")
+        state["next_node"] = "END"
 
     return state

@@ -1,8 +1,11 @@
 from langgraph import APITool
 
-create_customer_tool = APITool(
-    name="create_customer_tool",
-    description="Create a customer in the database",
-    endpoint="http://localhost:8000/api/customers/",
+create_invoice_tool = APITool(
+    name="create_invoice_tool",
+    description="Create an invoice in the database",
+    endpoint="http://localhost:8000/api/invoices/",
     method="POST"
 )
+
+# Add more tools as needed
+

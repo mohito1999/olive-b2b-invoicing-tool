@@ -1,39 +1,36 @@
 from fastapi import APIRouter, HTTPException
-from langgraph.graph import StateGraph, MessagesState, START
-from langchain.schema import HumanMessage
-from app.agents.supervisor import supervisor
-from app.agents.customer_agent import customer_agent
+from pydantic import BaseModel
+from app.core.state_graph import graph
+from langgraph.graph import MessagesState
 
 router = APIRouter()
 
-# Build the Graph
-builder = StateGraph(MessagesState)
-builder.add_node(supervisor)
-builder.add_node(customer_agent)
-builder.add_edge(START, "supervisor")
+# Define request model
+class ChatRequest(BaseModel):
+    query: str
 
-# Compile the Supervisor
-compiled_supervisor = builder.compile()
-
-@router.post("/api/chat/")
-async def chat_with_ai(query: str):
+@router.post("/chat/")
+async def chat_with_ai(request: ChatRequest):
     try:
-        # Correct state initialization
-        state = MessagesState(messages=[HumanMessage(content=query)])
-        
-        # Use the correct method to execute the compiled graph
-        result = compiled_supervisor.invoke(state)  # Replace 'invoke' with the correct method if needed
-        
-        # Extract the last message correctly
+        query = request.query
+        print(f"[Chat API] Received Query: {query}")
+
+        # Initialize and Invoke the State Graph
+        state = MessagesState(messages=[{"role": "user", "content": query}])
+        result = graph.invoke(state)
+
+        # Extract Response
         last_message = result["messages"][-1]
-        
-        # Ensure proper attribute access
-        if hasattr(last_message, "content"):
-            return {"response": last_message.content}
+        if "content" in last_message:
+            print(f"[Chat API] Final Response: {last_message['content']}")
+            return {"response": last_message["content"]}
         else:
-            raise ValueError("Last message has no content attribute.")
-            
+            raise ValueError("No response content found.")
+
+    except ValueError as ve:
+        print(f"[Chat API] Value Error: {str(ve)}")
+        raise HTTPException(status_code=400, detail=f"Invalid request: {str(ve)}")
+
     except Exception as e:
+        print(f"[Chat API] Unhandled Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
-
